@@ -31,7 +31,8 @@ local function buildEquipmentSetItemLocationMap()
             local player, _, bags, _, slot, bag = EquipmentManager_UnpackLocation(itemLocation)
             if player and bags then
                 equipmentSetItemLocationMap[bag] = equipmentSetItemLocationMap[bag] or {}
-                equipmentSetItemLocationMap[bag][slot] = equipmentSetIDs[i]
+                equipmentSetItemLocationMap[bag][slot] = equipmentSetItemLocationMap[bag][slot] or {}
+                table.insert(equipmentSetItemLocationMap[bag][slot], equipmentSetIDs[i])
             end
         end
     end
@@ -71,14 +72,14 @@ local function sellMaster(minIlvl)
                         break
                     end
 
-                    --C_Container.UseContainerItem(bag, slot)
+                    C_Container.UseContainerItem(bag, slot)
                     print(coinIcon, containerInfo.hyperlink, "ilvl", itemLevel)
                 else
                     -- selling gray trash
                     if not itemQuality or itemQuality > 0 then
                         break
                     end
-                    --C_Container.UseContainerItem(bag, slot)
+                    C_Container.UseContainerItem(bag, slot)
                     print(coinIcon, containerInfo.hyperlink)
                 end
             until true
@@ -94,19 +95,23 @@ local function updateEquipmentSetIcons()
         for slot = 1, C_Container.GetContainerNumSlots(bag) do
             repeat
                 local itemButton = _G["ContainerFrame" .. (bag + 1) .. "Item" .. (C_Container.GetContainerNumSlots(bag) - slot + 1)]
-                local equipmentSetID = optionalChain(equipmentMap, bag, slot)
-                if equipmentSetID ~= nil then
-                    if not itemButton.iconOverlay then
-                        itemButton.iconOverlay = itemButton:CreateTexture(nil, "OVERLAY")
-                        itemButton.iconOverlay:SetSize(12, 12)
-                        itemButton.iconOverlay:SetPoint("TOPRIGHT", 2, 2)
-                        itemButton.iconOverlay:SetDrawLayer("OVERLAY", 2)
-                    end
-                    local _, iconFileID = C_EquipmentSet.GetEquipmentSetInfo(equipmentSetID)
-                    itemButton.iconOverlay:SetTexture(iconFileID)
-                else
-                    if itemButton.iconOverlay then
-                        itemButton.iconOverlay:SetTexture(nil)
+                local equipmentSetIDs = optionalChain(equipmentMap, bag, slot)
+
+                for i = 1, 3 do
+                    local equipmentSetID = optionalChain(equipmentSetIDs, i)
+                    if equipmentSetID then
+                        if not itemButton["iconOverlay" .. i] then
+                            itemButton["iconOverlay" .. i] = itemButton:CreateTexture(nil, "OVERLAY")
+                            itemButton["iconOverlay" .. i]:SetSize(12, 12)
+                            itemButton["iconOverlay" .. i]:SetPoint("TOPRIGHT", 2, 2 - 12 * (i - 1))
+                            itemButton["iconOverlay" .. i]:SetDrawLayer("OVERLAY", 2)
+                        end
+                        local _, iconFileID = C_EquipmentSet.GetEquipmentSetInfo(equipmentSetID)
+                        itemButton["iconOverlay" .. i]:SetTexture(iconFileID)
+                    else
+                        if itemButton["iconOverlay" .. i] then
+                            itemButton["iconOverlay" .. i]:SetTexture(nil)
+                        end
                     end
                 end
             until true
