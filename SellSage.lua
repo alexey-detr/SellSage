@@ -1,4 +1,4 @@
-local addonName, addonTable = ...
+local addonName, SellSage = ...
 
 local coinIcon = "|TInterface\\MoneyFrame\\UI-GoldIcon:12:12:2:0|t"
 
@@ -40,7 +40,7 @@ local function buildEquipmentSetItemLocationMap()
     return equipmentSetItemLocationMap
 end
 
-local function sellMaster(minIlvl)
+local function sellMaster()
     local equipmentMap = buildEquipmentSetItemLocationMap()
     local numBags = 5 -- includes backpack
     for bag = 0, numBags - 1 do
@@ -68,7 +68,7 @@ local function sellMaster(minIlvl)
                     if isTransmoggable(itemID) and not C_TransmogCollection.PlayerHasTransmog(itemID) then
                         break
                     end
-                    if not itemLevel or itemLevel >= minIlvl then
+                    if not itemLevel or itemLevel >= SellSageMinItemLevelMinItemLevel then
                         break
                     end
 
@@ -119,9 +119,14 @@ local function updateEquipmentSetIcons()
     end
 end
 
-local function handleEvent(self, event, ...)
-    if event == "MERCHANT_SHOW" then
-        sellMaster(addonTable.minIlvl)
+function SellSage_HandleEvent(self, event, ...)
+    local arg1 = ...;
+
+    if event == "ADDON_LOADED" and arg1 == addonName then
+        SellSage.InitSavedVariables();
+        SettingsRegistrar:AddRegistrant(SellSage.RegisterSettingsUI)
+    elseif event == "MERCHANT_SHOW" then
+        sellMaster()
     elseif event == "BAG_UPDATE" then
         updateEquipmentSetIcons()
     elseif event == "EQUIPMENT_SETS_CHANGED" then
@@ -130,9 +135,10 @@ local function handleEvent(self, event, ...)
 end
 
 local f = CreateFrame("Frame")
+
+f:RegisterEvent("ADDON_LOADED");
 f:RegisterEvent("MERCHANT_SHOW")
 f:RegisterEvent("BAG_UPDATE")
 f:RegisterEvent("EQUIPMENT_SETS_CHANGED")
-f:SetScript("OnEvent", handleEvent)
 
-addonTable.minIlvl = 395 -- Default. This can be changed via the addon's interface
+f:SetScript("OnEvent", SellSage_HandleEvent)

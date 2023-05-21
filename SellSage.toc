@@ -1,6 +1,8 @@
-## Interface: 90005
-## Title: Sell Sage
-## Author: YourName
+## Interface: 100100
+## Title: SellSage
+## Author: alexey_detr
 ## Version: 1.0.0
 ## Notes: Auto-sells gray items and low ilvl gear.
+## SavedVariables: SellSageMinItemLevelMinItemLevel
 SellSage.lua
+SellSageSettingsUI.lua
