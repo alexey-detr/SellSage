@@ -2,6 +2,12 @@ local addonName, SellSage = ...
 
 local coinIcon = "|TInterface\\MoneyFrame\\UI-GoldIcon:12:12:2:0|t"
 
+local function sellItemDelayed(bag, slot)
+    C_Timer.After(0.1, function()
+        C_Container.UseContainerItem(bag, slot)
+    end)
+end
+
 local function optionalChain(...)
     local value = select(1, ...)
     for i = 2, select("#", ...) do
@@ -72,14 +78,14 @@ local function sellMaster()
                         break
                     end
 
-                    C_Container.UseContainerItem(bag, slot)
+                    sellItemDelayed(bag, slot)
                     print(coinIcon, containerInfo.hyperlink, "ilvl", itemLevel)
                 else
                     -- selling gray trash
                     if not itemQuality or itemQuality > 0 then
                         break
                     end
-                    C_Container.UseContainerItem(bag, slot)
+                    sellItemDelayed(bag, slot)
                     print(coinIcon, containerInfo.hyperlink)
                 end
             until true
