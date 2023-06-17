@@ -1,5 +1,14 @@
 local addonName, SellSage = ...
 
+function SellSage.InitSavedVariables()
+    if SellSageMinItemLevelMinItemLevel == nil then
+        SellSageMinItemLevelMinItemLevel = 360
+    end
+    if SellSageAlwaysSellListItemIDs == nil then
+        SellSageAlwaysSellListItemIDs = {}
+    end
+end
+
 local coinIcon = "|TInterface\\MoneyFrame\\UI-GoldIcon:12:12:2:0|t"
 
 local function sellItemDelayed(bag, slot)
@@ -48,8 +57,7 @@ end
 
 local function sellMaster()
     local equipmentMap = buildEquipmentSetItemLocationMap()
-    local numBags = 5 -- includes backpack
-    for bag = 0, numBags - 1 do
+    for bag = 0, NUM_BAG_SLOTS + 1 do
         for slot = 1, C_Container.GetContainerNumSlots(bag) do
             repeat
                 local containerInfo = C_Container.GetContainerItemInfo(bag, slot)
@@ -80,13 +88,21 @@ local function sellMaster()
 
                     sellItemDelayed(bag, slot)
                     print(coinIcon, containerInfo.hyperlink, "ilvl", itemLevel)
-                else
-                    -- selling gray trash
-                    if not itemQuality or itemQuality > 0 then
-                        break
-                    end
+                    break
+                end
+
+                -- selling gray trash
+                if itemQuality and itemQuality == 0 then
                     sellItemDelayed(bag, slot)
                     print(coinIcon, containerInfo.hyperlink)
+                    break
+                end
+
+                -- selling items in always sell list
+                if SellSage.IsItemInAlwaysSellList(itemID) then
+                    sellItemDelayed(bag, slot)
+                    print(coinIcon, containerInfo.hyperlink, "always sell list")
+                    break
                 end
             until true
         end
@@ -95,9 +111,8 @@ end
 
 local function updateEquipmentSetIcons()
     local equipmentMap = buildEquipmentSetItemLocationMap()
-    local numBags = 5 -- includes backpack
     -- Update equipment set icons when bags are opened
-    for bag = 0, numBags - 1 do
+    for bag = 0, NUM_BAG_SLOTS + 1 do
         for slot = 1, C_Container.GetContainerNumSlots(bag) do
             repeat
                 local itemButton = _G["ContainerFrame" .. (bag + 1) .. "Item" .. (C_Container.GetContainerNumSlots(bag) - slot + 1)]
@@ -137,6 +152,8 @@ function SellSage_HandleEvent(self, event, ...)
         updateEquipmentSetIcons()
     elseif event == "EQUIPMENT_SETS_CHANGED" then
         updateEquipmentSetIcons()
+    elseif event == "MODIFIER_STATE_CHANGED" then
+        SellSage.UpdateCoinButtons()
     end
 end
 
@@ -146,5 +163,6 @@ f:RegisterEvent("ADDON_LOADED");
 f:RegisterEvent("MERCHANT_SHOW")
 f:RegisterEvent("BAG_UPDATE")
 f:RegisterEvent("EQUIPMENT_SETS_CHANGED")
+f:RegisterEvent("MODIFIER_STATE_CHANGED")
 
 f:SetScript("OnEvent", SellSage_HandleEvent)

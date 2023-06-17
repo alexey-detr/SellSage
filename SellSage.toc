@@ -3,6 +3,7 @@
 ## Author: alexey_detr
 ## Version: 1.0.0
 ## Notes: Auto-sells gray items and low ilvl gear.
-## SavedVariables: SellSageMinItemLevelMinItemLevel
+## SavedVariables: SellSageMinItemLevelMinItemLevel, SellSageAlwaysSellListItemIDs
 SellSage.lua
+SellSageAlwaysSellList.lua
 SellSageSettingsUI.lua

@@ -2,12 +2,6 @@ local _, SellSage = ...
 
 SellSage.SettingsControls = {}
 
-function SellSage.InitSavedVariables()
-    if SellSageMinItemLevelMinItemLevel == nil then
-        SellSageMinItemLevelMinItemLevel = 360
-    end
-end
-
 function SellSage.RegisterSettingsUI()
     local category = Settings.RegisterVerticalLayoutCategory("SellSage")
 
