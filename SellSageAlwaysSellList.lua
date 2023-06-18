@@ -23,46 +23,46 @@ function SellSage.UpdateCoinButtons()
             repeat
                 local itemButton = _G["ContainerFrame" .. (bag + 1) .. "Item" .. (C_Container.GetContainerNumSlots(bag) - slot + 1)]
 
-                if not itemButton.coinButton then
+                if not itemButton.sellSageCoinButton then
                     -- Create the coin button
-                    itemButton.coinButton = CreateFrame("Button", nil, itemButton)
-                    itemButton.coinButton:SetFrameStrata("DIALOG")
-                    itemButton.coinButton:SetSize(20, 20)
-                    itemButton.coinButton:SetPoint("BOTTOMLEFT", itemButton, "BOTTOMLEFT", -3, -4)
+                    itemButton.sellSageCoinButton = CreateFrame("Button", nil, itemButton)
+                    itemButton.sellSageCoinButton:SetFrameStrata("DIALOG")
+                    itemButton.sellSageCoinButton:SetSize(20, 20)
+                    itemButton.sellSageCoinButton:SetPoint("BOTTOMLEFT", itemButton, "BOTTOMLEFT", -3, -4)
 
                     -- Set the coin button texture
-                    itemButton.coinButton:SetNormalTexture("Interface\\Icons\\inv_misc_coin_01")
+                    itemButton.sellSageCoinButton:SetNormalTexture("Interface\\Icons\\inv_misc_coin_01")
 
                     -- Set the click handler for the coin button
-                    itemButton.coinButton:SetScript("OnClick", function()
+                    itemButton.sellSageCoinButton:SetScript("OnClick", function()
                         coinButtonClick(bag, slot)
                         SellSage.UpdateCoinButtons()
                     end)
                 end
 
                 if not IsAltKeyDown() then
-                    itemButton.coinButton:Hide()
+                    itemButton.sellSageCoinButton:Hide()
                     break
                 end
 
                 local containerInfo = C_Container.GetContainerItemInfo(bag, slot)
                 if not containerInfo then
-                    itemButton.coinButton:Hide()
+                    itemButton.sellSageCoinButton:Hide()
                     break
                 end
 
                 local sellPrice = select(11, GetItemInfo(containerInfo.hyperlink))
                 if not sellPrice or sellPrice <= 0 then
-                    itemButton.coinButton:Hide()
+                    itemButton.sellSageCoinButton:Hide()
                     break
                 end
 
-                itemButton.coinButton:Show()
+                itemButton.sellSageCoinButton:Show()
 
                 if SellSage.IsItemInAlwaysSellList(containerInfo.itemID) then
-                    _G.ActionButton_ShowOverlayGlow(itemButton.coinButton)
+                    _G.ActionButton_ShowOverlayGlow(itemButton.sellSageCoinButton)
                 else
-                    _G.ActionButton_HideOverlayGlow(itemButton.coinButton)
+                    _G.ActionButton_HideOverlayGlow(itemButton.sellSageCoinButton)
                 end
             until true
         end

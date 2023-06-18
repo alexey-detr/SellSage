@@ -154,6 +154,7 @@ function SellSage_HandleEvent(self, event, ...)
         updateEquipmentSetIcons()
     elseif event == "MODIFIER_STATE_CHANGED" then
         SellSage.UpdateCoinButtons()
+        SellSage.UpdateTsmIcons()
     end
 end
 
