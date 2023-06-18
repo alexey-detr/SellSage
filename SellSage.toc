@@ -6,4 +6,5 @@
 ## SavedVariables: SellSageMinItemLevelMinItemLevel, SellSageAlwaysSellListItemIDs
 SellSage.lua
 SellSageAlwaysSellList.lua
+SellSageTsm.lua
 SellSageSettingsUI.lua
