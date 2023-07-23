@@ -12,9 +12,19 @@ end
 local coinIcon = "|TInterface\\MoneyFrame\\UI-GoldIcon:12:12:2:0|t"
 
 local function sellItemDelayed(bag, slot)
-    C_Timer.After(0.1, function()
-        C_Container.UseContainerItem(bag, slot)
-    end)
+    C_Container.UseContainerItem(bag, slot)
+    coroutine.yield()
+end
+
+-- create a new coroutine for selling items
+local sellItemsCoroutine = nil
+local ticker = nil -- Declare the ticker variable here
+
+local function updateSellMaster()
+    -- resume the coroutine if there's one
+    if sellItemsCoroutine ~= nil then
+        coroutine.resume(sellItemsCoroutine)
+    end
 end
 
 local function optionalChain(...)
@@ -57,55 +67,70 @@ end
 
 local function sellMaster()
     local equipmentMap = buildEquipmentSetItemLocationMap()
-    for bag = 0, NUM_BAG_SLOTS + 1 do
-        for slot = 1, C_Container.GetContainerNumSlots(bag) do
-            repeat
-                local containerInfo = C_Container.GetContainerItemInfo(bag, slot)
-                if not containerInfo then
-                    break
-                end
-
-                local itemID = containerInfo.itemID
-                if not itemID then
-                    break
-                end
-
-                local _, _, itemQuality, itemLevel, _, _, _, _, _, _, _, classID = GetItemInfo(containerInfo.hyperlink)
-
-                -- 2 is for weapons and 4 is for armor
-                if classID == 2 or classID == 4 then
-                    -- Do not sell if item is part of any set
-                    if optionalChain(equipmentMap, bag, slot) ~= nil then
-                        break
-                    end
-                    -- Do not sell if item is in transmog collection
-                    if isTransmoggable(itemID) and not C_TransmogCollection.PlayerHasTransmog(itemID) then
-                        break
-                    end
-                    if not itemLevel or itemLevel >= SellSageMinItemLevelMinItemLevel then
+    sellItemsCoroutine = coroutine.create(function()
+        for bag = 0, NUM_BAG_SLOTS + 1 do
+            for slot = 1, C_Container.GetContainerNumSlots(bag) do
+                repeat
+                    local containerInfo = C_Container.GetContainerItemInfo(bag, slot)
+                    if not containerInfo then
                         break
                     end
 
-                    sellItemDelayed(bag, slot)
-                    print(coinIcon, containerInfo.hyperlink, "ilvl", itemLevel)
-                    break
-                end
+                    local itemID = containerInfo.itemID
+                    if not itemID then
+                        break
+                    end
 
-                -- selling gray trash
-                if itemQuality and itemQuality == 0 then
-                    sellItemDelayed(bag, slot)
-                    print(coinIcon, containerInfo.hyperlink)
-                    break
-                end
+                    local _, _, itemQuality, itemLevel, _, _, _, _, _, _, _, classID = GetItemInfo(containerInfo.hyperlink)
 
-                -- selling items in always sell list
-                if SellSage.IsItemInAlwaysSellList(itemID) then
-                    sellItemDelayed(bag, slot)
-                    print(coinIcon, containerInfo.hyperlink, "always sell list")
-                    break
-                end
-            until true
+                    -- 2 is for weapons and 4 is for armor
+                    if classID == 2 or classID == 4 then
+                        -- Do not sell if item is part of any set
+                        if optionalChain(equipmentMap, bag, slot) ~= nil then
+                            break
+                        end
+                        -- Do not sell if item is in transmog collection
+                        if isTransmoggable(itemID) and not C_TransmogCollection.PlayerHasTransmog(itemID) then
+                            break
+                        end
+                        if not itemLevel or itemLevel >= SellSageMinItemLevelMinItemLevel then
+                            break
+                        end
+
+                        sellItemDelayed(bag, slot)
+                        print(coinIcon, containerInfo.hyperlink, "ilvl", itemLevel)
+                        break
+                    end
+
+                    -- selling gray trash
+                    if itemQuality and itemQuality == 0 then
+                        sellItemDelayed(bag, slot)
+                        print(coinIcon, containerInfo.hyperlink)
+                        break
+                    end
+
+                    -- selling items in always sell list
+                    if SellSage.IsItemInAlwaysSellList(itemID) then
+                        sellItemDelayed(bag, slot)
+                        print(coinIcon, containerInfo.hyperlink, "always sell list")
+                        break
+                    end
+                until true
+            end
         end
+
+        -- reset the coroutine when all items are sold
+        sellItemsCoroutine = nil
+        if ticker then
+            -- If the ticker is running
+            ticker:Cancel() -- Cancel the ticker
+            ticker = nil -- Reset the ticker variable
+        end
+    end)
+
+    -- Only create a new ticker if one isn't currently running
+    if not ticker then
+        ticker = C_Timer.NewTicker(0.2, updateSellMaster) -- Store the ticker object
     end
 end
 
