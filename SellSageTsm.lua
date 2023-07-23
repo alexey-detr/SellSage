@@ -15,7 +15,7 @@ function SellSage.UpdateTsmIcons()
                     itemButton.sellSageTsmMarker = CreateFrame("Frame", nil, itemButton)
                     itemButton.sellSageTsmMarker:SetFrameStrata("DIALOG")
                     itemButton.sellSageTsmMarker:SetSize(16, 16)
-                    itemButton.sellSageTsmMarker:SetPoint("TOPRIGHT", itemButton, "TOPRIGHT", 2, 2)
+                    itemButton.sellSageTsmMarker:SetPoint("BOTTOMRIGHT", itemButton, "BOTTOMRIGHT", 2, -2)
 
                     -- Set the coin button texture
                     local texture = itemButton.sellSageTsmMarker:CreateTexture(nil, "BACKGROUND")
