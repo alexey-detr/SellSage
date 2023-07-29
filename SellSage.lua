@@ -96,6 +96,11 @@ local function sellMaster()
                         if not itemLevel or itemLevel >= SellSageMinItemLevelMinItemLevel then
                             break
                         end
+                        -- Do not sell items with quality higher than epic
+                        -- https://wowpedia.fandom.com/wiki/Enum.ItemQuality
+                        if itemQuality and itemQuality >= 5 then
+                            break
+                        end
 
                         sellItemDelayed(bag, slot)
                         print(coinIcon, containerInfo.hyperlink, "ilvl", itemLevel)
