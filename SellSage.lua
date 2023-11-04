@@ -93,6 +93,10 @@ local function sellMaster()
                         if isTransmoggable(itemID) and not C_TransmogCollection.PlayerHasTransmog(itemID) then
                             break
                         end
+                        -- Do not sell items that are ilvl 1 (cosmetic items) and that are not soulbound
+                        if not containerInfo.itemLocked and itemLevel == 1 then
+                            break
+                        end
                         if not itemLevel or itemLevel >= SellSageMinItemLevelMinItemLevel then
                             break
                         end
@@ -180,11 +184,12 @@ function SellSage_HandleEvent(self, event, ...)
         sellMaster()
     elseif event == "BAG_UPDATE" then
         updateEquipmentSetIcons()
+        SellSage.UpdateCoinButtons()
     elseif event == "EQUIPMENT_SETS_CHANGED" then
         updateEquipmentSetIcons()
     elseif event == "MODIFIER_STATE_CHANGED" then
         SellSage.UpdateCoinButtons()
-        SellSage.UpdateTsmIcons()
+        --SellSage.UpdateTsmIcons()
     end
 end
 
