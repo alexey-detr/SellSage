@@ -18,6 +18,8 @@ local function coinButtonClick(bag, slot)
 end
 
 function SellSage.UpdateCoinButtons()
+    local greenTickTexturePath = "interface\\raidframe\\readycheck-ready"  -- Update this with the actual path to your green tick texture
+
     for bag = 0, NUM_BAG_SLOTS + 1 do
         for slot = 1, C_Container.GetContainerNumSlots(bag) do
             repeat
@@ -27,11 +29,28 @@ function SellSage.UpdateCoinButtons()
                     -- Create the coin button
                     itemButton.sellSageCoinButton = CreateFrame("Button", nil, itemButton)
                     itemButton.sellSageCoinButton:SetFrameStrata("DIALOG")
-                    itemButton.sellSageCoinButton:SetSize(20, 20)
+                    itemButton.sellSageCoinButton:SetSize(24, 24)
                     itemButton.sellSageCoinButton:SetPoint("BOTTOMLEFT", itemButton, "BOTTOMLEFT", -3, -4)
 
                     -- Set the coin button texture
                     itemButton.sellSageCoinButton:SetNormalTexture("Interface\\Icons\\inv_misc_coin_01")
+
+                    -- Create the green tick texture
+                    itemButton.sellSageCoinButton.greenTickOverlay = itemButton.sellSageCoinButton:CreateTexture(nil, "OVERLAY")
+                    itemButton.sellSageCoinButton.greenTickOverlay:SetTexture(greenTickTexturePath)
+                    itemButton.sellSageCoinButton.greenTickOverlay:SetSize(20, 20)  -- Adjust size as needed
+                    itemButton.sellSageCoinButton.greenTickOverlay:SetPoint("CENTER", itemButton.sellSageCoinButton, "CENTER", 0, 0)
+                    itemButton.sellSageCoinButton.greenTickOverlay:Hide()  -- Initially hidden
+
+
+                    itemButton.sellSageCoinButton:SetScript("OnMouseDown", function(self)
+                        self:SetSize(20, 20) -- Slightly smaller to give a pressed effect
+                        self:SetPoint("BOTTOMLEFT", itemButton, "BOTTOMLEFT", -1, -2) -- Adjust position if needed
+                    end)
+                    itemButton.sellSageCoinButton:SetScript("OnMouseUp", function(self)
+                        self:SetSize(24, 24) -- Revert to original size
+                        self:SetPoint("BOTTOMLEFT", itemButton, "BOTTOMLEFT", -3, -4) -- Revert to original position
+                    end)
 
                     -- Set the click handler for the coin button
                     itemButton.sellSageCoinButton:SetScript("OnClick", function()
@@ -60,9 +79,13 @@ function SellSage.UpdateCoinButtons()
                 itemButton.sellSageCoinButton:Show()
 
                 if SellSage.IsItemInAlwaysSellList(containerInfo.itemID) then
-                    _G.ActionButton_ShowOverlayGlow(itemButton.sellSageCoinButton)
+                    -- Set colorful texture
+                    itemButton.sellSageCoinButton:GetNormalTexture():SetVertexColor(1, 1, 1)
+                    itemButton.sellSageCoinButton.greenTickOverlay:Show()
                 else
-                    _G.ActionButton_HideOverlayGlow(itemButton.sellSageCoinButton)
+                    -- Set grayscale texture
+                    itemButton.sellSageCoinButton:GetNormalTexture():SetVertexColor(0.6, 0.6, 0.6)
+                    itemButton.sellSageCoinButton.greenTickOverlay:Hide()
                 end
             until true
         end
