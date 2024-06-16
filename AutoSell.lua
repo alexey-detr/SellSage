@@ -30,10 +30,13 @@ function SellSage:updateCoinButtons()
 	local redCrossTexturePath = "interface\\raidframe\\readycheck-notready"
 
 	for bag = 0, NUM_BAG_SLOTS + 1 do
-		for slot = 1, C_Container.GetContainerNumSlots(bag) do
+		local containerNumSlots = C_Container.GetContainerNumSlots(bag)
+		for slot = 1, containerNumSlots do
 			repeat
-				local itemButton =
-					_G["ContainerFrame" .. (bag + 1) .. "Item" .. (C_Container.GetContainerNumSlots(bag) - slot + 1)]
+				local itemButton = _G["ContainerFrame" .. (bag + 1) .. "Item" .. (containerNumSlots - slot + 1)]
+				if not itemButton then
+					break
+				end
 
 				if not itemButton.sellSageCoinButton then
 					-- Create the coin button

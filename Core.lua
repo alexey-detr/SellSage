@@ -23,11 +23,6 @@ local function optionalChain(...)
 	return value
 end
 
-local function sellItemDelayed(bag, slot)
-	C_Container.UseContainerItem(bag, slot)
-	coroutine.yield()
-end
-
 function SellSage:OnInitialize()
 	self.db = AceDB:New("SellSageDB", defaults, true)
 	self.coinIcon = "|TInterface\\MoneyFrame\\UI-GoldIcon:12:12:2:0|t"
@@ -37,9 +32,20 @@ end
 
 function SellSage:OnEnable()
 	self:RegisterEvent("MERCHANT_SHOW", "sellMaster")
+	self:RegisterEvent("MERCHANT_CLOSED", "stopSelling")
 	self:RegisterEvent("BAG_UPDATE", "updateEquipmentSetIcons")
 	self:RegisterEvent("EQUIPMENT_SETS_CHANGED", "updateEquipmentSetIcons")
 	self:RegisterEvent("MODIFIER_STATE_CHANGED", "updateCoinButtons")
+end
+
+function SellSage:stopSelling()
+	if self.sellItemsCoroutine then
+		self.sellItemsCoroutine = nil
+	end
+	if self.ticker then
+		self.ticker:Cancel()
+		self.ticker = nil
+	end
 end
 
 function SellSage:updateSellMaster()
@@ -76,7 +82,7 @@ function SellSage:buildEquipmentSetItemLocationMap()
 end
 
 function SellSage:sellMaster()
-	local equipmentMap = SellSage:buildEquipmentSetItemLocationMap()
+	local equipmentMap = self:buildEquipmentSetItemLocationMap()
 	self.sellItemsCoroutine = coroutine.create(function()
 		for bag = 0, NUM_BAG_SLOTS + 1 do
 			for slot = 1, C_Container.GetContainerNumSlots(bag) do
@@ -91,8 +97,16 @@ function SellSage:sellMaster()
 						break
 					end
 
-					local _, _, itemQuality, itemLevel, _, _, _, _, _, _, _, classID =
+					local itemName, _, itemQuality, itemLevel, _, _, _, _, _, _, sellPrice, classID =
 						GetItemInfo(containerInfo.hyperlink)
+
+					if not itemName then
+						break
+					end
+
+					if sellPrice == 0 then
+						break
+					end
 
 					-- 2 is for weapons and 4 is for armor
 					if classID == 2 or classID == 4 then
@@ -101,14 +115,14 @@ function SellSage:sellMaster()
 							break
 						end
 						-- Do not sell if item is in transmog collection
-						if SellSage:isTransmoggable(itemID) and not C_TransmogCollection.PlayerHasTransmog(itemID) then
+						if self:isTransmoggable(itemID) and not C_TransmogCollection.PlayerHasTransmog(itemID) then
 							break
 						end
 						-- Do not sell items that are ilvl 1 (cosmetic items) and that are not soulbound
 						if not containerInfo.itemLocked and itemLevel == 1 then
 							break
 						end
-						if not itemLevel or itemLevel >= self.db.profile.AutoSellMinItemLevel then
+						if not itemLevel or itemLevel >= self.db.profile.autoSellMinItemLevel then
 							break
 						end
 						-- Do not sell items with quality higher than epic
@@ -117,25 +131,29 @@ function SellSage:sellMaster()
 							break
 						end
 
-						sellItemDelayed(bag, slot)
+						C_Container.UseContainerItem(bag, slot)
 						print(coinIcon, containerInfo.hyperlink, "ilvl", itemLevel)
+						coroutine.yield() -- Only yield after using the item
 						break
 					end
 
 					-- selling gray trash
 					if itemQuality and itemQuality == 0 then
-						sellItemDelayed(bag, slot)
+						C_Container.UseContainerItem(bag, slot)
 						print(coinIcon, containerInfo.hyperlink)
+						coroutine.yield() -- Only yield after using the item
 						break
 					end
 
 					-- selling items in always sell list
-					if SellSage:isItemInAutoSellList(itemID) then
-						sellItemDelayed(bag, slot)
+					if self:isItemInAutoSellList(itemID) then
+						C_Container.UseContainerItem(bag, slot)
 						print(coinIcon, containerInfo.hyperlink, "auto sell list")
+						coroutine.yield() -- Only yield after using the item
 						break
 					end
 				until true
+				-- No yield here, continue processing items
 			end
 		end
 
@@ -157,10 +175,13 @@ function SellSage:updateEquipmentSetIcons()
 	local equipmentMap = SellSage:buildEquipmentSetItemLocationMap()
 	-- Update equipment set icons when bags are opened
 	for bag = 0, NUM_BAG_SLOTS + 1 do
-		for slot = 1, C_Container.GetContainerNumSlots(bag) do
+		local containerNumSlots = C_Container.GetContainerNumSlots(bag)
+		for slot = 1, containerNumSlots do
 			repeat
-				local itemButton =
-					_G["ContainerFrame" .. (bag + 1) .. "Item" .. (C_Container.GetContainerNumSlots(bag) - slot + 1)]
+				local itemButton = _G["ContainerFrame" .. (bag + 1) .. "Item" .. (containerNumSlots - slot + 1)]
+				if not itemButton then
+					break
+				end
 				local equipmentSetIDs = optionalChain(equipmentMap, bag, slot)
 
 				for i = 1, 3 do
