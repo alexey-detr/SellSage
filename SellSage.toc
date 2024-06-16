@@ -2,9 +2,11 @@
 ## Title: SellSage
 ## Author: alexey_detr
 ## Version: 1.0.0
+## IconTexture: Interface\AddOns\SellSage\Images\StaticArrow.tga
 ## Notes: Auto-sells gray items and low ilvl gear.
-## SavedVariables: SellSageMinItemLevelMinItemLevel, SellSageAlwaysSellListItemIDs
-SellSage.lua
-SellSageAlwaysSellList.lua
-SellSageTsm.lua
-SellSageSettingsUI.lua
+## SavedVariables: SellSageDB
+## AddonCompartmentFunc: SellSage_OnAddonCompartmentClick
+
+Core.lua
+AutoSell.lua
+SettingsUI.lua
