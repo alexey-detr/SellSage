@@ -14,10 +14,10 @@ local options = {
 			step = 5,
 			width = "full",
 			get = function()
-				return SellSage.db.profile.AutoSellMinItemLevel
+				return SellSage.db.profile.autoSellMinItemLevel
 			end,
 			set = function(_, value)
-				SellSage.db.profile.AutoSellMinItemLevel = value
+				SellSage.db.profile.autoSellMinItemLevel = value
 			end,
 			order = 1,
 		},
@@ -54,7 +54,7 @@ local options = {
 }
 
 function SellSage_OnAddonCompartmentClick(addonName, buttonName, menuButtonFrame)
-	InterfaceOptionsFrame_OpenToCategory(SettingsUI.optionsFrame)
+	Settings.OpenToCategory("SellSage")
 end
 
 function SettingsUI:OnInitialize()
@@ -63,7 +63,7 @@ function SettingsUI:OnInitialize()
 
 	SLASH_SELLSAGE1 = "/sellsage"
 	SlashCmdList["SELLSAGE"] = function()
-		InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)
+		Settings.OpenToCategory("SellSage")
 	end
 end
 
